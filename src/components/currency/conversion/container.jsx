@@ -2,23 +2,23 @@ import React, { useState, useEffect } from 'react';
 import { ConversionWidget } from './widget';
 
 export const ConversionContainer = () => {
-
+    // eslint-disable-next-line
     const [targetCurrency, setTargetCurrency] = useState({ key: "USD", symbol: "$" });
+    // eslint-disable-next-line
     const [originCurrency, setOriginCurrency] = useState({ key: "EUR", symbol: "€" });
-    const [currentCurrency, setCurrentCurrency] = useState();
+    const [currency, setCurrency] = useState();
     const [convertedCurrency, setConvertedCurrency] = useState();
     const [isCalculateButtonDisabled, setIsCalculateButtonDisabled] = useState(true);
 
     const [isLoading, setIsLoading] = useState(false);
     const [isError, setIsError] = useState(false);
     const baseURL = 'http://data.fixer.io/api/latest';
-    const [fetchURL, setFetchURL] = useState(`${baseURL}?access_key=33b23d6e01efe285daf21f65e1124757`);
+    const fetchURL = useState(`${baseURL}?access_key=33b23d6e01efe285daf21f65e1124757`);
     const [fetchedCurrency, setFetchedCurrency] = useState();
 
     useEffect(() => {
         setIsLoading(true);
         setIsError(false);
-
         fetch(fetchURL)
             .then(response => {
                 if (!response.ok) {
@@ -34,20 +34,22 @@ export const ConversionContainer = () => {
                         AMD: 4.282542,
                         AFN: 82.847739,
                         ALL: 125.93356,
-                        USD: 1.11
+                        USD: 1.11 + Math.random()
                     }
                 }
+                console.log(dataMock);
                 if (!dataMock.success || !(targetCurrency.key in dataMock.rates)) {
                     setErrorState();
                     return;
                 }
                 setFetchedCurrency(dataMock.rates[targetCurrency.key]);
+                calculateConversionHandler();
                 setIsLoading(false);
             })
             .catch(err => {
                 setErrorState();
-            })
-    }, [fetchURL]);
+            });
+    }, []);
 
     const setErrorState = () => {
         setIsError(true);
@@ -55,11 +57,11 @@ export const ConversionContainer = () => {
     };
 
     const calculateConversionHandler = () => {
-        setConvertedCurrency(currentCurrency * fetchedCurrency);
+        setConvertedCurrency(currency * fetchedCurrency);
     };
 
     const changeCurrencyValueHandler = (values) => {
-        setCurrentCurrency(values.floatValue);
+        setCurrency(values.floatValue);
         setIsCalculateButtonDisabled(!values);
     };
 
@@ -69,6 +71,7 @@ export const ConversionContainer = () => {
             isError,
             fetchedCurrency,
             convertedCurrency,
+            currency,
             changeCurrencyValueHandler,
             calculateConversionHandler,
             isCalculateButtonDisabled,
@@ -76,6 +79,4 @@ export const ConversionContainer = () => {
             originCurrency
         }} />
     );
-
-
 }

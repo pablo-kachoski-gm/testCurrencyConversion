@@ -52,6 +52,7 @@ export const ConversionWidget = ({
         changeCurrencyValueHandler,
         calculateConversionHandler,
         convertedCurrency,
+        currency,
         isCalculateButtonDisabled,
         isError,
         isLoading,
@@ -70,6 +71,7 @@ export const ConversionWidget = ({
                                 <ConversionInput
                                     thousandSeparator={true}
                                     prefix={originCurrency.symbol}
+                                    value={currency || ''}
                                     placeholder="EU"
                                     decimalScale={4}
                                     onValueChange={changeCurrencyValueHandler} />
@@ -102,6 +104,7 @@ ConversionWidget.propTypes = {
         isError: PropTypes.bool,
         isLoading: PropTypes.bool,
         convertedCurrency: PropTypes.number,
+        currency: PropTypes.number,
         fetchedCurrency: PropTypes.number,
         targetCurrency: PropTypes.shape({
             key: PropTypes.string,
