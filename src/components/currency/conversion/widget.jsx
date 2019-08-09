@@ -15,6 +15,9 @@ const CalculateButton = Style.div`
         ${props => !props.disabled && "background-color: rgb(115,115,115);"} 
     }
 `
+const ConversionRateSection = Style.section`
+    grid-row: 1;
+`
 const ConversionSection = Style.section`
     grid-row: 2;
 `
@@ -46,17 +49,22 @@ const FeedbackContainer = Style.div`
     font-size: calc(5px + 2vmin);
     font-weight: bold;
 `
-
+const ConversionRateLabel = Style.div`
+    color: white;
+    font-size: calc(5px + 2vmin);
+    font-weight: bold;
+    margin-bottom: 1vh;
+`
 export const ConversionWidget = ({
     converter: {
+        isLoading,
+        isError,
+        currencyRate,
+        targetCurrencyValue,
+        originCurrencyValue,
         changeCurrencyValueHandler,
         calculateConversionHandler,
-        convertedCurrency,
-        currency,
         isCalculateButtonDisabled,
-        isError,
-        isLoading,
-        fetchedCurrency,
         targetCurrency,
         originCurrency
     }
@@ -65,22 +73,35 @@ export const ConversionWidget = ({
         <MainSection>
             {isLoading ? (<LoadingContainer>Loading ...</LoadingContainer>) :
                 isError ? <FeedbackContainer> Something went wrong </FeedbackContainer> :
-                    fetchedCurrency ?
+                    currencyRate ?
                         (<>
+                            <ConversionRateSection>
+                                <ConversionRateLabel>Conversion Rate</ConversionRateLabel>
+                                <ConversionInput
+                                    thousandSeparator={true}
+                                    prefix={targetCurrency.symbol}
+                                    placeholder={targetCurrency.placeholder}
+                                    decimalScale={4}
+                                    value={currencyRate || ''}
+                                    fixedDecimalScale={true}
+                                    disabled />
+                            </ConversionRateSection>
                             <ConversionSection>
                                 <ConversionInput
                                     thousandSeparator={true}
                                     prefix={originCurrency.symbol}
-                                    value={currency || ''}
-                                    placeholder="EU"
+                                    value={originCurrencyValue || ''}
+                                    placeholder={originCurrency.placeholder}
                                     decimalScale={4}
+                                    fixedDecimalScale={true}
                                     onValueChange={changeCurrencyValueHandler} />
                                 <ConversionInput
                                     thousandSeparator={true}
                                     prefix={targetCurrency.symbol}
-                                    placeholder="USD"
+                                    placeholder={targetCurrency.placeholder}
                                     decimalScale={4}
-                                    value={convertedCurrency || ''}
+                                    value={targetCurrencyValue || ''}
+                                    fixedDecimalScale={true}
                                     disabled />
                             </ConversionSection>
                             <ActionsSection>
@@ -103,9 +124,9 @@ ConversionWidget.propTypes = {
         isCalculateButtonDisabled: PropTypes.bool,
         isError: PropTypes.bool,
         isLoading: PropTypes.bool,
-        convertedCurrency: PropTypes.number,
-        currency: PropTypes.number,
-        fetchedCurrency: PropTypes.number,
+        targetCurrencyValue: PropTypes.number,
+        originCurrencyValue: PropTypes.number,
+        currencyRate: PropTypes.number,
         targetCurrency: PropTypes.shape({
             key: PropTypes.string,
             symbol: PropTypes.string

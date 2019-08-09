@@ -1,24 +1,31 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ConversionWidget } from './widget';
 
 export const ConversionContainer = () => {
+    const baseURL = 'http://data.fixer.io/api/latest';
+    const fetchURL = useState(`${baseURL}?access_key=33b23d6e01efe285daf21f65e1124757`);
     // eslint-disable-next-line
-    const [targetCurrency, setTargetCurrency] = useState({ key: "USD", symbol: "$" });
+    const [targetCurrency, setTargetCurrency] = useState({ key: "USD", symbol: "$", placeholder: "USD" });
     // eslint-disable-next-line
-    const [originCurrency, setOriginCurrency] = useState({ key: "EUR", symbol: "€" });
-    const [currency, setCurrency] = useState();
-    const [convertedCurrency, setConvertedCurrency] = useState();
-    const [isCalculateButtonDisabled, setIsCalculateButtonDisabled] = useState(true);
+    const [originCurrency, setOriginCurrency] = useState({ key: "EUR", symbol: "€", placeholder: "EU" });
+
+    const [originCurrencyValue, setOriginCurrencyValue] = useState();
+    const [targetCurrencyValue, setTargetCurrencyValue] = useState();
+    const [currencyRate, setCurrencyRate] = useState();
 
     const [isLoading, setIsLoading] = useState(false);
     const [isError, setIsError] = useState(false);
-    const baseURL = 'http://data.fixer.io/api/latest';
-    const fetchURL = useState(`${baseURL}?access_key=33b23d6e01efe285daf21f65e1124757`);
-    const [fetchedCurrency, setFetchedCurrency] = useState();
+    const [isCalculateButtonDisabled, setIsCalculateButtonDisabled] = useState(true);
+
+    const [toggleRefresh, setToggleRefresh] = useState(false);
+
+    const currencyRateRef = useRef();
+    currencyRateRef.current = currencyRate;
 
     useEffect(() => {
         setIsLoading(true);
         setIsError(false);
+        const refreshInterval = setInterval( () => { setToggleRefresh(!toggleRefresh) } , 10000 );
         fetch(fetchURL)
             .then(response => {
                 if (!response.ok) {
@@ -27,7 +34,6 @@ export const ConversionContainer = () => {
                 return response.json();
             })
             .then(data => {
-                //TODO REMOVE COMMENTS WHEN THE API works. Limited monthly usage..
                 const dataMock = {
                     success: true,
                     rates: {
@@ -37,19 +43,16 @@ export const ConversionContainer = () => {
                         USD: 1.11 + Math.random()
                     }
                 }
-                console.log(dataMock);
-                if (!dataMock.success || !(targetCurrency.key in dataMock.rates)) {
-                    setErrorState();
-                    return;
-                }
-                setFetchedCurrency(dataMock.rates[targetCurrency.key]);
+                const fetchedCurrencyRate = targetCurrency.key in dataMock.rates ? dataMock.rates[targetCurrency.key].toFixed(4) : null;
+                setCurrencyRate(fetchedCurrencyRate);
                 calculateConversionHandler();
                 setIsLoading(false);
             })
             .catch(err => {
                 setErrorState();
             });
-    }, []);
+        return () => clearInterval(refreshInterval);
+    }, [toggleRefresh]);
 
     const setErrorState = () => {
         setIsError(true);
@@ -57,11 +60,11 @@ export const ConversionContainer = () => {
     };
 
     const calculateConversionHandler = () => {
-        setConvertedCurrency(currency * fetchedCurrency);
+        setTargetCurrencyValue(originCurrencyValue * currencyRateRef.current);
     };
 
     const changeCurrencyValueHandler = (values) => {
-        setCurrency(values.floatValue);
+        setOriginCurrencyValue(values.floatValue);
         setIsCalculateButtonDisabled(!values);
     };
 
@@ -69,9 +72,9 @@ export const ConversionContainer = () => {
         <ConversionWidget converter={{
             isLoading,
             isError,
-            fetchedCurrency,
-            convertedCurrency,
-            currency,
+            currencyRate,
+            targetCurrencyValue,
+            originCurrencyValue,
             changeCurrencyValueHandler,
             calculateConversionHandler,
             isCalculateButtonDisabled,
